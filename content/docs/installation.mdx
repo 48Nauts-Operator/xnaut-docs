@@ -1,0 +1,35 @@
+---
+title: Installation
+description: Download xNAUT for macOS or Windows, or build from source.
+---
+
+## Download
+
+Grab the latest release from [GitHub Releases](https://github.com/48Nauts-Operator/xNaut/releases/latest):
+
+- **macOS** — `xNAUT-<version>-macos-aarch64.dmg` (Apple Silicon) or `-x64.dmg` (Intel). Open the DMG and drag xNAUT to Applications.
+- **Windows x64** — `.msi` or `-setup.exe`. Windows builds ship with every release but are younger than the macOS ones — the core terminal works; some workspace features are macOS-first.
+
+xNAUT checks GitHub Releases on startup and offers one-click updates, so you only install manually once.
+
+## Build from source
+
+Requirements: Rust 1.70+, and on macOS `xcode-select --install`.
+
+```bash
+git clone https://github.com/48Nauts-Operator/xNaut.git
+cd xNaut/src-tauri
+
+# development, with hot reload
+cargo tauri dev
+
+# release bundle
+cargo tauri build
+open target/release/bundle/macos/xNAUT.app
+```
+
+## First launch
+
+1. Open a terminal tab (`Ctrl+T`) — your default shell (zsh, bash, fish) is auto-detected.
+2. `Cmd+,` opens Settings — pick a theme, configure AI providers, rebind shortcuts.
+3. If you run [Ollama](https://ollama.com) or LM Studio, the AI features find them on localhost automatically — no keys needed.

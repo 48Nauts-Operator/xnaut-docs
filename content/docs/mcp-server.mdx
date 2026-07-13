@@ -1,0 +1,36 @@
+---
+title: MCP server
+description: Let Claude Code, Codex or any MCP client drive xNAUT — projects, tickets, and vault docs over localhost.
+---
+
+xNAUT ships a built-in **MCP server** (Streamable HTTP, localhost only). Your agents don't just run *in* the terminal — they can call it as a tool.
+
+## What agents can do
+
+- **Projects** — list the projects xNAUT manages
+- **Tickets** — list, create, and update tickets; updates use optimistic revisions, so concurrent edits fail loudly instead of silently overwriting
+- **Vault docs** — list, search, read, create, and update Markdown documents in the selected project's vault scope; updates require the SHA-256 returned by the preceding read (conflict-safe writes)
+
+Paths are constrained to visible, relative `.md` files inside the project scope — an agent can't wander your filesystem.
+
+## Connecting a client
+
+Open **Project Settings** in xNAUT — it shows the local endpoint and the per-app-session bearer token, with a copy-ready connection object:
+
+```json
+{
+  "xnaut": {
+    "type": "http",
+    "url": "http://127.0.0.1:<port>/mcp",
+    "headers": { "Authorization": "Bearer <session-token>" }
+  }
+}
+```
+
+Paste it into your agent's MCP configuration (e.g. `.mcp.json` for Claude Code). The token rotates per app session — reconnecting after an xNAUT restart means copying a fresh object.
+
+## Security model
+
+- Bound to loopback — nothing is reachable from the network
+- Per-session bearer tokens, invalidated on app restart
+- Vault writes are conflict-safe (SHA-256 precondition) and scoped per project

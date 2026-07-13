@@ -1,0 +1,31 @@
+---
+title: What is xNAUT?
+description: A native 8 MB terminal built for the agent era — local-first AI, live agent status, and cryptographically signed work sessions.
+---
+
+xNAUT is a native terminal (Rust + Tauri v2, ~8 MB) for developers who work with AI coding agents. One app holds:
+
+- **Terminals** — tabs, up to 16 split panes, 12 themes with full ANSI palettes, bundled Nerd Fonts
+- **Agents** — run Claude Code, Codex, Gemini or any CLI agent with live status pills (working / done / blocked)
+- **Worktrees** — one modal creates an isolated git worktree and drops an agent into it
+- **Diffs** — side-by-side diffs where agents leave inline annotations
+- **Project workspaces** — each project keeps its own tabs and context
+- **Docs & knowledge** — an Obsidian-style vault with wikilinks, backlinks and a knowledge-graph orb
+- **Proof of Work** — every session can be recorded into a SHA-256 Merkle chain and exported as a client-ready, tamper-evident report
+
+## Principles
+
+**Local-first.** AI features run against Ollama or LM Studio on localhost by default. Cloud providers (Anthropic, OpenAI, OpenRouter, Perplexity) are optional and use your own keys, stored locally.
+
+**No account. No telemetry.** There is no backend to send anything to. The only network call the app makes on its own is the GitHub Releases update check.
+
+**Free forever.** MIT-licensed, backed by ∅ Nobody — no investor, no paid tier, no credits.
+
+## Where to go next
+
+<Cards>
+  <Card title="Installation" href="/docs/installation" />
+  <Card title="Running agents" href="/docs/agents" />
+  <Card title="MCP server" href="/docs/mcp-server" />
+  <Card title="Proof of Work" href="/docs/proof-of-work" />
+</Cards>

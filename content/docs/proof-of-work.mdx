@@ -1,0 +1,25 @@
+---
+title: Proof of Work
+description: The Work Session Logger — Merkle-chained command records, QR verification, and client-ready reports.
+---
+
+The Work Session Logger turns a terminal session into a **tamper-evident record of billable work**.
+
+## How it works
+
+1. **Record** — every command is captured with timestamp and duration while a session is recording.
+2. **Chain** — records are hashed into a SHA-256 Merkle tree. Editing any entry after the fact breaks the chain.
+3. **Report** — export a professional HTML or PDF report with a tool-usage summary: time grouped by Claude Code, Docker, cargo, AntBot, and anything else it detects.
+4. **Verify** — the report carries a QR code; scanning it verifies the session's Merkle root, proving the record wasn't modified.
+
+## What it proves — and what it doesn't
+
+The chain proves **integrity**: these commands ran, at these times, for these durations, and nobody edited the record afterwards. It does not certify the *quality* of the work — it's a notary, not a reviewer.
+
+## Who it's for
+
+Consultants and freelancers who invoice by the hour and want to hand clients something better than a hand-typed timesheet. A day of agent-assisted work exports as a verifiable worksheet in seconds.
+
+## Privacy
+
+Session logs are local files on your machine. Nothing is uploaded anywhere; you choose what to export and share.
