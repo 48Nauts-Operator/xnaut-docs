@@ -5,7 +5,7 @@ export default function HomePage() {
     <div className="flex flex-col items-center justify-center text-center flex-1 gap-4 px-6">
       <h1 className="text-3xl font-bold">xNAUT Documentation</h1>
       <p className="text-fd-muted-foreground max-w-md">
-        The terminal built for the agent era — 8 MB native, local-first AI,
+        The terminal built for the agent era — 20 MB native, local-first AI,
         free forever.
       </p>
       <div className="flex gap-3 mt-2">
