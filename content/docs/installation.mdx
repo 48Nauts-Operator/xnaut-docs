@@ -3,7 +3,18 @@ title: Installation
 description: Download xNAUT for macOS or Windows, or build from source.
 ---
 
-## Download
+## Homebrew (macOS)
+
+```bash
+brew tap 48Nauts-Operator/tap
+brew install --cask xnaut
+```
+
+On recent Homebrew you may hit `Refusing to load cask … from untrusted tap`. If so, run `brew trust 48nauts-operator/tap` once, then re-run the install. (Older Homebrew versions don't have `brew trust` and won't need it.)
+
+Upgrades: `brew upgrade --cask xnaut`.
+
+## Direct download
 
 Grab the latest release from [GitHub Releases](https://github.com/48Nauts-Operator/xNaut/releases/latest):
 
