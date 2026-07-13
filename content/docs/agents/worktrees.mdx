@@ -1,0 +1,40 @@
+---
+title: Worktree Manager
+description: Isolated git worktrees per agent — created with a recipe where push and status both just behave.
+---
+
+Parallel agents editing the same checkout is how merge conflicts are born. The Worktree Manager (top-bar button) gives every agent its own isolated tree.
+
+## Creating a worktree
+
+The create flow runs, for a new branch:
+
+```bash
+git -C <repo> worktree add --no-track -b <branch> <path> [<base>]
+git -C <path> config push.autoSetupRemote true
+```
+
+Two deliberate choices (borrowed from [Orca](https://github.com/stablyai/orca)'s recipe):
+
+- **`--no-track`** — the new branch doesn't track the base ref, so `git status` stays quiet instead of reporting bogus ahead/behind counts before the first push.
+- **`push.autoSetupRemote true`** — a plain `git push` creates the upstream automatically; no `-u origin <branch>` dance for you or the agent.
+
+Checking out an **existing** branch skips branch creation; base defaults to the repo's HEAD. The suggested path convention is `<repo-parent>/<repo-name>-worktrees/<branch>` (slashes in branch names become dashes).
+
+## Launching an agent inside
+
+Pick any registered agent in the create modal — it launches with the worktree as its working directory. Existing worktrees are listed with a per-row **launch agent here** action.
+
+## Removing
+
+Remove refuses if the tree has uncommitted or untracked changes; **force-remove** overrides after a confirm. Removal also prunes and — unless you opt out — deletes the branch if no other worktree uses it:
+
+```bash
+git -C <repo> worktree remove [--force] <path>
+git -C <repo> worktree prune
+git -C <repo> branch -D <branch>   # only if no other worktree uses it
+```
+
+## Reviewing the result
+
+Open the [Diff Viewer](/docs/agents/diff-review) on any worktree to see `git diff HEAD` with the agent's inline annotations.

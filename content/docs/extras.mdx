@@ -1,0 +1,42 @@
+---
+title: Snippets, triggers, SSH & more
+description: Command snippets, output triggers, SSH profiles, error monitor, browser panes, Forge review, and auto-update.
+---
+
+## Command Snippets
+
+Snippet cards with collapsible command lists, search, and category pills (Docker, Deployment, Build, Git, Database, Testing by default). Per-command **Copy / Run / Explain** actions (Explain asks your AI provider). Star favorites to pin them first; **Share** copies a snippet as JSON for teammates. **Export** writes a dated `xnaut-snippets-YYYY-MM-DD.json`; **Import** merges by id and unions categories.
+
+## Triggers
+
+Regex pattern matching on terminal output with three action types:
+
+- **Notify** — desktop notification with a message
+- **RunCommand** — run a shell command
+- **AiAssist** — send a prompt to your AI provider
+
+Three defaults ship: an **error notifier** (matches `error|fail|failed|exception`), a **permission helper** (matches `permission denied` → asks the AI how to fix it), and a success notifier (disabled by default). Named patterns include WARNING, NOT_FOUND, CONNECTION_ERROR, SYNTAX_ERROR, and SEGFAULT. Configure under Settings → Triggers.
+
+## Error Monitor
+
+A real-time collection panel (on by default) that spots `Error:`, build failures, test `FAIL`s, warnings, deprecations, and stack traces across all terminals, with severity levels.
+
+## SSH
+
+SSH profiles with password or key auth (with optional passphrase). **Import from `~/.ssh/config`** pulls your Hosts automatically — wildcard entries are skipped.
+
+## Browser panes
+
+`⌥B` splits the current pane with a real browser — a native Tauri child webview (not an iframe), with address bar, back/forward/reload, and DuckDuckGo as the default page. Loaded pages get no access to the Tauri API.
+
+## Markdown panes & editor
+
+`⌥M` splits with a markdown pane: Edit/Preview toggle, GFM tables and task lists, syntax-highlighted code, and **Mermaid** diagrams. `Cmd+S` saves, `Cmd+O` opens. The built-in file editor handles 25+ languages with line numbers and markdown preview.
+
+## Forge review workspace
+
+Forgejo and GitHub issues/PRs open **inside xNAUT** — issue context, source links, and an agent-assisted RCA surface with isolated conversation history. No browser handoff.
+
+## Auto-update
+
+On startup xNAUT checks for a new release (Tauri updater with signed artifacts; GitHub API fallback). A banner offers **Update Now** — download, verify, restart, done. You're never more than one click behind.

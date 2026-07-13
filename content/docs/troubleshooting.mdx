@@ -1,0 +1,32 @@
+---
+title: Troubleshooting
+description: Debug logs, panic tripwire, black terminals, and where to file issues.
+---
+
+## Logs
+
+- **Panic tripwire** — every backend panic is appended to `~/Library/Application Support/xnaut/rust-panics.log` with thread and `file:line`. If the app ever freezes "alive" (UI up, terminals dead), check this file first — it survives even when the IPC bridge is gone.
+- **Debug log** — the app keeps a rolling debug log (byte-safe trimmed at 2 MB). Verbose per-chunk terminal logging is off by default; enable it in DevTools with `window.XNAUT_VERBOSE = true` when chasing output issues.
+- **DevTools** — `Cmd+Option+I` opens the web inspector for the UI layer.
+
+## Terminal shows nothing / black screen
+
+1. Check DevTools console for `Command not allowed by ACL` — a Tauri 2 permission problem; update to the latest release.
+2. Verify your shell exists (`which zsh`), and try a different shell in Settings → Nautify.
+3. Run a dev build with `RUST_LOG=xnaut::pty=debug cargo tauri dev` to trace the PTY layer.
+
+## AI features can't reach local models
+
+The webview blocks cross-origin requests, so xNAUT routes local-provider HTTP (model lists, chat) through the Rust backend. If Ollama/LM Studio aren't detected:
+
+- Confirm the service is running (`curl localhost:11434/v1/models` for Ollama).
+- Check the endpoint configured under Settings → AI matches the actual port.
+- Use the **Test** button — it probes from the backend (CORS-proof) and reports Connected/Failed.
+
+## Update problems
+
+The auto-updater checks GitHub Releases on startup. If the banner never appears, your network may block `api.github.com`; grab the latest DMG/installer manually from [Releases](https://github.com/48Nauts-Operator/xNaut/releases).
+
+## Filing issues
+
+Bugs and feature requests: [GitHub issues](https://github.com/48Nauts-Operator/xNaut/issues). Include the app version (About xNAUT), your OS, and the tail of `rust-panics.log` if the app crashed or froze.

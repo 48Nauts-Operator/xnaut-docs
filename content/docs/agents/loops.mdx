@@ -1,0 +1,60 @@
+---
+title: Agent Loops
+description: The visual loop designer — node types, validation, approval gates, bounded retries, budgets, and the LoopBuilder agent.
+---
+
+Agent Loops are versioned, validated workflows that orchestrate agents with hard safety rails. Build them visually on the Rete canvas (**Agent Loops** tab), or describe one in chat and let **LoopBuilder** draft it.
+
+## Node types
+
+| Node | Purpose |
+|---|---|
+| `trigger` | Starts a run |
+| `agent` | Runs an Agent profile |
+| `action` | Invokes an xNAUT tool |
+| `decision` | Routes structured output |
+| `human_approval` | Waits for an authorized decision |
+| `transform` | Maps structured data |
+| `retry` | Starts a bounded cycle |
+| `parallel` | Starts independent branches |
+| `subflow` | Runs another versioned Agent Loop |
+| `output` | Completes the run |
+
+## Versioning
+
+Definitions are **append-only**: every save creates version N+1 and always lands as a *draft*. Activation is a separate, audited step, and runs pin to the exact version they started with — editing a loop never changes a run in flight. Active definitions can be deactivated; active runs have an **Emergency Stop** that durably cancels pending and running nodes.
+
+## Validation and audit
+
+Every save is validated structurally: a loop must have a trigger and an output, every node reachable and able to reach an output, connected port types must match, executable nodes need timeouts — and **every cycle must contain a `retry` node** (no unbounded loops, ever).
+
+Activation additionally runs a governance audit that blocks, among others:
+
+- **Secrets in node config** (`api_key`, `password`, `private_key`… — use references instead)
+- **Unbounded permissions** (`*`/`*`) or permissions denied by policy layers
+- **Frontier models without an upstream human approval** (when `require_frontier_approval` is on, the default)
+- **Untrusted trigger input flowing into mutating permissions** (create/write/delete/push/…)
+- **Cost estimates exceeding the budget** (per-node expected tokens priced against your model rates)
+- Missing failure routes on error ports, and missing test/review/release **evidence** when delivery evidence is required
+
+## Approval gates, retries, budgets
+
+- A `human_approval` node parks the whole run in *waiting-for-approval*; only an explicit approve/reject with a named actor resolves it.
+- Per-node `max_retries` bounds re-execution; a hard ceiling of node executions (default 100) backstops the whole run.
+- **Limits**: max duration (default 30 min), optional max agent calls, max tokens, and max cost in USD. On budget exhaustion a run either **pauses** (resume requires an explicit budget override) or **fails** — your choice per loop.
+- Node outputs and errors are **secret-redacted** before they're persisted; runs refuse inputs that contain secret-like material.
+
+## Templates
+
+Two production-shaped templates ship:
+
+- **Agent Feature Delivery** — a 27-node loop from feature request through plan → human go-ahead → implement → automated tests → browser validation → scoring → code review → human review → merge → archive, with three bounded retry cycles and evidence attached at test/review/release. Budget: 7 days, 24 agent calls, 500k tokens, $100, pause on exhaustion.
+- **Ticket triage** — new forge issue (marked untrusted input) → read-only gathering → local-model analysis → classification decision → comment publish → human triage decision. Can auto-run on an interval against configured repositories.
+
+## LoopBuilder
+
+Describe the loop in chat — LoopBuilder compiles the request into a draft definition, auto-inserts bounded `retry` nodes into any unguarded cycle, runs the validator, and repairs its own validation errors (up to three passes) before saving. By constraint it **creates drafts only**: it can never activate or run a loop, never requests secrets, and always puts a human approval before privileged actions.
+
+## Runs
+
+Starting a run requires **repository, branch, and ticket scope**. The Runs tab shows summary tiles (active / approvals / paused / completed / failed), each run's durable event stream, current node state, and an explicit *waiting-for-worker* state — a ready node that no worker has claimed is shown as exactly that, not as "running".

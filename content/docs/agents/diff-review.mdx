@@ -1,0 +1,58 @@
+---
+title: Diff Viewer & AI review notes
+description: Side-by-side diffs with inline agent annotations — notes.json schema, the /v1/notes broker, and the xnaut-review skill.
+---
+
+The Diff Viewer shows a side-by-side or unified `git diff HEAD` for any worktree, with **inline note cards floating beside the changed lines**. Notes follow [hunk](https://github.com/modem-dev/hunk)'s data model and live in a plain file agents can write.
+
+## notes.json
+
+Location: `<worktree>/.xnaut/notes.json` (pretty-printed; hand-editing is fine). A file watcher re-renders the pane within ~100 ms of any change.
+
+```json
+{
+  "version": 1,
+  "summary": "Optional review-level summary",
+  "files": [
+    {
+      "path": "src/auth.rs",
+      "summary": "Optional per-file summary",
+      "annotations": [
+        {
+          "oldRange": [42, 42],
+          "newRange": [45, 47],
+          "summary": "Token expiry not checked",
+          "rationale": "refresh() accepts an expired token because…",
+          "tags": ["correctness"],
+          "confidence": "high",
+          "source": "agent",
+          "author": "claude"
+        }
+      ]
+    }
+  ]
+}
+```
+
+`summary` is the only required annotation field. Ranges are inclusive, 1-indexed: `oldRange` anchors to the pre-image, `newRange` to the post-image — both may be set so a note renders in split *and* unified view. Rendering docks: new-side notes → right column, old-side → left, off-hunk notes → a file-level group.
+
+## The HTTP broker
+
+Agents that prefer HTTP over file writes use `POST http://127.0.0.1:<port>/v1/notes` (same loopback port as the hook listener; JSON body with an `action` discriminator). **Eight verbs:**
+
+| Verb | Does |
+|---|---|
+| `review` | diff + notes together (`includePatch: true` to get the patch) — call this first to learn line numbers |
+| `get` | full notes doc for a worktree |
+| `comment-add` | one inline note (`worktree`, `filePath`, `side: "old"\|"new"`, `line`, `summary`, …) |
+| `comment-apply` | transactional batch of comments |
+| `comment-list` | list annotations, optionally per file |
+| `comment-rm` | remove one by id |
+| `comment-clear` | clear agent/AI notes (`includeUser: true` to also drop yours) |
+| `list` | placeholder session list |
+
+`comment-add` / `comment-apply` anchor to single lines; for true multi-line ranges write `notes.json` directly. Set `reveal: true` (or `revealMode: "first"` on batches) and the user's pane scrolls to the note.
+
+## The xnaut-review skill
+
+xNAUT ships `skills/xnaut-review/SKILL.md` — drop it into Claude Code, Codex, or any skill-aware agent and it knows the whole protocol: call `review` first, comment only on non-obvious issues, keep `summary` a ≤60-char headline with the "why" in `rationale`, and fall back to writing `notes.json` directly if loopback HTTP is sandboxed.

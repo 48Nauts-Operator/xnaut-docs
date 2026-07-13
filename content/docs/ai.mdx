@@ -1,0 +1,30 @@
+---
+title: AI providers & features
+description: Local-first AI — Ollama, LM Studio, AntBot — plus optional cloud providers, Explain Screen, and the privacy monitor.
+---
+
+## Providers
+
+**Local (default).** Ollama, LM Studio, and AntBot work without any cloud API. Models are auto-detected from the running service, and AntBot's gateway can auto-start with xNAUT. Local-provider HTTP is routed through the Rust backend, so the webview's CORS restrictions never get in the way — the **Test** button in Settings probes the endpoint and reports Connected/Failed.
+
+**Cloud (optional).** Anthropic, OpenAI, OpenRouter, and Perplexity — bring your own API keys, stored locally. Agent Chat can enumerate models from any configured OpenAI-compatible endpoint and groups them by provider in the model selector; each request routes through the provider that owns the selected model.
+
+Your provider/model choice in the right-pane Agent Chat is persisted in xNAUT's settings and survives agent switches, navigation, pane remounts, and restarts.
+
+## AI features
+
+- **Explain Screen** — reads the visible terminal output and explains what's happening; ideal for unfamiliar error walls.
+- **AI Theme Generator** — describe a vibe ("submarine at dawn"), get a full ANSI theme for the entire app.
+- **Snippet Explain** — one click explains any saved command.
+- **Plan Mode & Librarian** — document-writing agents for planning and vault management (see [Vault](/docs/workspace/vault)).
+- **Excalidraw MCP** — xNAUT can clone, build, and run the official MIT-licensed Excalidraw MCP server locally on loopback; Agent Chat discovers its drawing tools automatically. A hosted endpoint + bearer key are optional overrides.
+
+## Privacy Monitor (ClawProxy)
+
+A transparent LLM API proxy that inspects outgoing prompts **before they leave the app**:
+
+- Detects leaked API keys, credentials, and PII
+- Real-time privacy indicator in the status bar
+- Privacy assessment panel with per-alert details
+
+Combined with local providers, the default posture is: nothing sensitive leaves your machine, and if something would, you hear about it first.

@@ -1,0 +1,28 @@
+---
+title: Agent Library & AgentFather
+description: Reusable agent profiles — persona, skills, tools, access scopes — created through a guarded setup assistant.
+---
+
+## Agent profiles
+
+The Agent Library holds reusable, **Markdown-backed agent profiles**. Each profile defines:
+
+- **Persona and role** — who the agent is and what it's for
+- **Skills, tools, and constraints** — what it may use and must not do
+- **Expected outputs** — the shape of what it delivers
+- **Access scopes** — which projects/documents it may touch
+- **Runtime model assignment** — a specific provider/model, or the global default
+
+Profiles are runnable: test an agent with its assigned model directly from the library, with conversation history preserved.
+
+## AgentFather
+
+AgentFather is the guarded setup assistant that creates agents on demand. Guardrails worth knowing:
+
+- Creation is a **separate flow** from AgentFather's own settings — an agent can't quietly reconfigure its creator.
+- **Privileged project access requires explicit acknowledgement** — you approve scope escalations, not the agent.
+- Profile overview and editing stay separate from the creation conversation.
+
+## Agent Chat
+
+The right-pane Agent Chat runs any profile: switch **agent and model independently**, with models discovered live from your configured LM Studio, Ollama, OpenAI, and OpenRouter providers. In NautFlow, agents receive a fresh snapshot of the visible document, can read linked Vault artifacts, and may write **only** the authorized active document when their profile permits it.

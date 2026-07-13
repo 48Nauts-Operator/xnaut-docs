@@ -1,0 +1,33 @@
+---
+title: The terminal
+description: Tabs, split panes, shells, themes, fonts — the core that everything else builds on.
+---
+
+## Tabs and panes
+
+- Multiple PTY sessions with tabs (`Ctrl+T` new, `Ctrl+W` close)
+- **Split panes, up to 16 per tab** — iTerm2-style with hover close buttons. `⌥D` splits vertical, `⇧⌥D` horizontal, `⌥←→↑↓` moves focus, `⌥W` closes a pane
+- Special splits: `⌥B` adds a **browser pane**, `⌥M` a **markdown pane** beside the terminal
+- Layout templates from single up to a 16-pane grid
+
+## Shells
+
+System default (`$SHELL`) with zsh, bash, fish, or a custom path selectable in Settings → Nautify. PowerShell on Windows. Shell integration recognizes OSC 133 prompt marks for prompt detection; xNAUT never injects hooks into your shell config.
+
+## Rendering
+
+Full xterm.js rendering with 256-color and truecolor, clickable URLs, and `Cmd +/-/0` font zoom (8–32 px, also works in markdown docs). Font size, background opacity, and ligatures are configurable.
+
+**Bundled Nerd Fonts:** JetBrains Mono NF (default), Fira Code NF, Cascadia Code NF, Source Code Pro NF — plus system fonts in the picker (SF Mono, Menlo, Monaco, IBM Plex Mono).
+
+## Themes
+
+- **6 built-in presets** — xNAUT Instrument, Jellybeans, Default Dark, Dracula, Solarized Light, Monokai — each with full ANSI palettes and live preview
+- **20 bundled Warp themes** — Tokyo Night Storm, Night Owl, Synthwave '84, GitHub Dark, Everforest, Poimandres, and more
+- **AI Theme Generator** — describe a vibe, get a complete theme (tries AntBot locally first, then your configured provider)
+- **Import** — Warp YAML, Warp JSON, Windows Terminal, and iTerm2-style JSON files
+- Theming is app-wide: terminal, editor, and chrome all follow the theme
+
+## Command history & drag-drop
+
+`Ctrl+R` opens command history search. Drag any file or folder from the right-pane tree onto a terminal to insert its shell-quoted path.

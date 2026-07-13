@@ -7,10 +7,10 @@ The Work Session Logger turns a terminal session into a **tamper-evident record 
 
 ## How it works
 
-1. **Record** — every command is captured with timestamp and duration while a session is recording.
-2. **Chain** — records are hashed into a SHA-256 Merkle tree. Editing any entry after the fact breaks the chain.
-3. **Report** — export a professional HTML or PDF report with a tool-usage summary: time grouped by Claude Code, Docker, cargo, AntBot, and anything else it detects.
-4. **Verify** — the report carries a QR code; scanning it verifies the session's Merkle root, proving the record wasn't modified.
+1. **Record** — toggle *Start Work Log* from the menu; you're asked for a **Client** and **Project**, and a pulsing indicator shows in the status bar. Every command is captured with timestamp, directory, and duration. An interrupted session resumes on next launch.
+2. **Chain** — each entry's hash is `SHA-256(timestamp | command | directory | prev_hash)`, chained from genesis; on stop, a binary SHA-256 **Merkle tree** over all entry hashes produces the session root. Editing any entry breaks verification.
+3. **Report** — export a professional **HTML report** (opens in your browser) or **copy as Markdown** for pasting into an invoice or email. The report groups time by tool — Claude Code, Codex, Aider, Docker, Terraform, kubectl, Helm, AWS/GCloud, Git, npm, Cargo, pip, AntBot, and more — with per-tool duration and counts.
+4. **Verify** — the summary carries a **QR code** encoding the session metadata and Merkle root; scanning it verifies the record wasn't modified.
 
 ## What it proves — and what it doesn't
 

@@ -1,0 +1,23 @@
+---
+title: Knowledge Graph
+description: The orb — your vault's wikilinks or your codebase's imports as a force-directed 2D/3D graph.
+---
+
+Open it from the **⋯ menu → Knowledge Graph**. The orb has two modes, switched by the **Vault / Code** selector:
+
+## Vault graph
+
+Scans a folder of `.md` notes and parses `[[wikilinks]]` into a force-directed graph, rendered as an Obsidian-style orb — 2D, or a slow auto-rotating 3D nebula. Notes match by filename stem, exactly like Obsidian. The Rust `graph_scan` walks every subfolder (dotfiles skipped, 6,000-file cap).
+
+## Code graph
+
+Scans a codebase instead: **files are nodes, relative imports are edges** (`./`, `../`, `#include "…"` — bare package imports are skipped so the graph shows *your* structure, not node_modules). Nodes are colored by file type with a legend.
+
+## The cosmic bits
+
+- Per-cluster coloring via union-find, golden-angle hues
+- A layered nebula-fog backdrop and a dim, twinkling starfield of orphan (unlinked) nodes
+- Cyan "signal" particles travelling along backlinks
+- **▶ Timeline** — reveals notes/files in modification-date order so you can watch the universe assemble; a scrubber lets you replay it
+
+Everything is scanned locally in Rust. Nothing leaves your machine.

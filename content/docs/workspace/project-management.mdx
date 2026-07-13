@@ -1,0 +1,44 @@
+---
+title: Project Management & NautFlow
+description: The optional Git-backed PM module — projects, tickets, Kanban, and the NautFlow stage lifecycle.
+---
+
+Project Management is an **optional module, disabled by default**. Enable it under **Settings → Tasks Mode → Modules**.
+
+## Setup
+
+A guided setup creates a dedicated **local Git control repository** for your project and ticket records — separate from your source repositories. Optionally it creates a private repository on your Forge (Forgejo first-class; GitHub supported) or connects an existing xNaut control repository, including recovery when a Forge API creation failed. Setup distinguishes org-owned from personal repositories and explains the token scopes it needs.
+
+## Projects and tickets
+
+- **Registry + board.** Create projects and tickets, filter by project or text, switch between Kanban and table views.
+- **Statuses.** Tickets flow through `Inbox → Ready → In Progress → Review → Blocked → Done` — drag them across the board.
+- **Ticket details.** Type, priority, status, owner, description, and linked Vault documents. Every mutation is revision-checked (optimistic concurrency) and lands as an individual, scoped Git commit.
+- **Traceability.** Activity comes from append-only workflow events. The workspace shows branch/commit/ahead-behind state and can pull, rebase, and push the control repository — including the first push to an empty remote.
+- **Vault handoff.** A ticket's document references open the linked work/personal Vault note directly.
+- **Migration.** Enabling the module imports your existing project registry with stable keys; legacy todos become tickets (unmatched ones are preserved under a Legacy Migration project), and the original stores remain untouched as a recovery copy.
+
+## On disk
+
+The control repo (suggested default `~/xnaut-control`) is plain Git + JSON — greppable, diffable, agent-friendly:
+
+```
+projects/<KEY>/project.json          # project manifest (key, client, budget, stage…)
+projects/<KEY>/tickets/<KEY>-1.json  # one file per ticket
+events/*.json                        # append-only mutation events
+schema/ticket-v1.schema.json         # machine-readable schema
+```
+
+Project keys are 2–12 uppercase characters and immutable; ticket IDs follow `KEY-N`. Each ticket carries `revision` for optimistic concurrency, plus `documentation` links into the Vault.
+
+## NautFlow
+
+NautFlow adds a **project lifecycle workspace** on top: overview, contributors, quality gates, connected systems, commercial baselines, and stage ownership in one screen.
+
+Artifacts move through focused stage workspaces: *Idea → Concept → Business Case → Product Requirements → Architecture → Data Model → API Design → Security Review → Development Plan → Sprint Stories → Tickets → Build → Test/Review → Release → Engram Learning*.
+
+Each stage supports multiple document versions with preview/edit, an active-document selection, and **promotion into the next stage with Agent validation**. Right-pane Agents see the visible artifact live, can read linked Vault documents, and may update only the authorized active document — successful writes refresh the editor immediately.
+
+## Agents and MCP
+
+Project and ticket commands form a constrained service boundary: external agents reach them through the [MCP server](/docs/mcp-server) — list projects, list/create/update tickets (revision-safe), and read/write project-scoped Vault docs (SHA-256 conflict-safe).

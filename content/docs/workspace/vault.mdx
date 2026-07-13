@@ -1,0 +1,30 @@
+---
+title: Markdown Vault
+description: Obsidian-style work and personal vaults inside the terminal, with a Librarian agent that files notes for you.
+---
+
+xNAUT ships two Obsidian-style vaults under `~/.xnaut-vault` — **work** and **personal** — with a note tree, tags, search, backlinks, `[[wikilinks]]`, drag/move, rename, and NAS sync hooks.
+
+## Editing and preview
+
+- Open any note with **Edit / Preview** toggle; save with `Cmd+S`.
+- Preview hides YAML frontmatter (Edit mode keeps it intact), renders document-style headings, polished tables, syntax-highlighted code, and **Mermaid** diagrams.
+- `Cmd +/-/0` zoom works in documents as well as terminals.
+
+## The Vault Librarian
+
+The right pane hosts **Librarian Conversations** — a chat agent with deterministic tool actions that can **search, read, create, write, move, and tag** notes. Conversation history is preserved; the in-pane **+** starts a fresh thread without losing archived ones.
+
+Power-user shortcut: explicit `vault_create` / `vault_write` JSON pasted into the Librarian executes directly, no model round-trip.
+
+## Templates
+
+`Templates/*.md` files appear in the create panel with title/date substitution — ship your own Concept, Business, or Development templates. The Librarian can also create and update templates itself.
+
+## Importing
+
+Paste a readable Obsidian link or an absolute `.md` path — it lands deterministically in `_inbox/`, again without a model round-trip.
+
+## Project-scoped docs
+
+When Project Management is enabled, each project gets a **Docs tab** that reuses the Vault editor scoped to the project's `Development/<project>` subtree, with an explicit **All Vault** switch (files never move). Agents can read and conflict-safely update these documents through the [MCP server](/docs/mcp-server).

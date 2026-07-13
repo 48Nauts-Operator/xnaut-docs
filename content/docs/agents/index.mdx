@@ -1,0 +1,62 @@
+---
+title: Agent Runner
+description: Launch any CLI coding agent with live status pills — registry at agents.toml, real-time hooks, output-silence fallback.
+---
+
+## Launching agents
+
+Launch Claude Code, Codex, Gemini, Grok, OpenCode, Pi — or anything you add — from the top bar. Each launch spawns the agent in its own PTY (optionally inside a [worktree](/docs/agents/worktrees)) and registers it with the status tracker.
+
+Every running agent shows a **status pill** with one of seven states: `working` (yellow spinner) · `done` (emerald check) · `blocked` / `waiting` / `permission` / `interrupted` (red) · `idle` (gray). Click a pill to jump to that agent's tab.
+
+Status comes from two sources:
+
+1. **Hook pushes** — real-time events POSTed by the agent (below)
+2. **Output-silence fallback** — PTY output means `working`; 2 s of silence means `idle`; process exit means `done`
+
+## The registry: agents.toml
+
+Agents are defined in `agents.toml` in xNAUT's config directory (`~/Library/Application Support/xnaut/` on macOS, `~/.config/xnaut/` on Linux). It's seeded with six defaults on first launch. Full per-agent schema:
+
+```toml
+[[agents]]
+id = "myagent"                    # stable identifier
+label = "My Agent"                # UI label
+detect_cmd = "myagent"            # binary checked on PATH
+launch_cmd = "myagent"            # binary actually executed
+extra_args = []                   # args before the prompt
+expected_process = "myagent"
+prompt_injection_mode = "argv"    # see below
+# draft_prompt_flag = "--prefill" # for flag-prompt modes
+# draft_prompt_env_var = "PROMPT" # also export prompt as env var
+# preflight_trust = "codex"       # cursor | copilot | codex
+[agents.env]                      # extra env vars on launch
+# OPENAI_BASE_URL = "http://localhost:8090/v1"
+```
+
+**The five prompt-injection modes** — every coding CLI has a quirk; one of these covers it:
+
+| Mode | Behavior | Default agent using it |
+|---|---|---|
+| `argv` | prompt as last positional argument | codex |
+| `flag-prompt` | `<flag> <prompt>` (e.g. `--prefill`) | claude |
+| `flag-prompt-interactive` | flag + prompt, then `-i` | gemini |
+| `flag-interactive` | just `-i`; prompt sent later | grok |
+| `stdin-after-start` | prompt pasted to stdin (bracketed-paste) 1.5 s after launch | opencode, pi |
+
+## The hook API
+
+At launch, xNAUT injects two env vars into the agent's process: `XNAUT_HOOK_URL` and `XNAUT_HOOK_TOKEN`. An agent hook script reports state by POSTing:
+
+```bash
+curl -s "$XNAUT_HOOK_URL" \
+  -H "X-Xnaut-Session: $XNAUT_HOOK_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"state": "done"}'
+```
+
+- Endpoint: `POST http://127.0.0.1:51737/v1/hook` — loopback only. The port is persisted in settings (default 51737; if taken, a random port is used and the app prints the live URL on startup).
+- `state` is required and **lowercase** (`working`, `blocked`, `waiting`, `done`, `idle`, `permission`, `interrupted`). Optional fields: `prompt`, `tool_name`, `interrupted`.
+- The token is a per-session UUID — one per launched agent.
+
+Wire this into your agent's stop/notification hooks (e.g. Claude Code's `Stop` hook) and the pills update the instant the agent finishes, instead of after the silence timeout.

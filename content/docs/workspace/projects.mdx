@@ -1,0 +1,26 @@
+---
+title: Project workspaces
+description: Each project is a workspace with its own tabs, terminals and session — switch projects, get your context back.
+---
+
+xNAUT follows the Orca/CMUX model: **each project card in the left rail is a workspace**, and the top tab bar shows only that project's tabs. Global views — Tasks, Automations, PM, Search — live in a shared **Home** workspace.
+
+## Behavior
+
+- Selecting a project restores its existing tabs; the first open creates a terminal in the project folder (or attaches the project's zellij session).
+- The active project is highlighted, and a status dot lights up when a project has open tabs.
+- Nothing bleeds between projects — terminals, panes, and context stay scoped.
+
+## Opening projects
+
+- Right-click a folder in the file tree → **Open as project**
+- Or ask the chat agent: *"open my X project"*
+- Drag a file or folder from the tree onto a terminal to insert its path
+
+## The right pane
+
+The Files icon opens a **root picker** that switches the tree between Home, Project Root, and the current project. `⌥B` splits the focused terminal with a sandboxed **browser pane**; `⌥M` with a **markdown pane** — docs and previews live beside the shell.
+
+## Plan Mode
+
+From any PM project, Plan Mode opens a two-pane planning workspace: chat on the left, a live `PLAN.md` on the right. The solution-architect persona extends the document each turn instead of dumping walls of text into chat; the doc pane has Edit/Preview with full Markdown + Mermaid rendering.
