@@ -2,6 +2,38 @@
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
 
+/* xNAUT brand — instrument black × beacon amber (matches xnaut.dev) */
+:root {
+  --color-fd-primary: hsl(38, 82%, 33%); /* darker amber for light-mode contrast */
+  --color-fd-primary-foreground: hsl(0, 0%, 100%);
+  --color-fd-ring: hsl(41, 89%, 61%);
+}
+
+.dark {
+  --color-fd-background: hsl(220, 12%, 4.5%);        /* #0A0B0D */
+  --color-fd-foreground: hsl(220, 8%, 93%);          /* #ECEDEF */
+  --color-fd-card: hsl(220, 12%, 7.5%);              /* #101216 */
+  --color-fd-card-foreground: hsl(220, 8%, 93%);
+  --color-fd-popover: hsl(220, 12%, 7.5%);
+  --color-fd-popover-foreground: hsl(220, 8%, 93%);
+  --color-fd-muted: hsl(220, 10%, 10%);
+  --color-fd-muted-foreground: hsl(216, 8%, 57%);    /* #878E99 */
+  --color-fd-border: hsl(220, 10%, 13%);             /* #1E2127 */
+  --color-fd-primary: hsl(41, 89%, 61%);             /* #F5B840 */
+  --color-fd-primary-foreground: hsl(45, 38%, 6%);   /* #16130A */
+  --color-fd-secondary: hsl(220, 10%, 10%);
+  --color-fd-secondary-foreground: hsl(220, 8%, 93%);
+  --color-fd-accent: hsl(220, 10%, 12%);
+  --color-fd-accent-foreground: hsl(220, 8%, 93%);
+  --color-fd-ring: hsl(41, 89%, 61%);
+}
+
+.dark #nd-sidebar {
+  --color-fd-muted: hsl(220, 10%, 10%);
+  --color-fd-secondary: hsl(220, 10%, 12%);
+  --color-fd-muted-foreground: hsl(216, 8%, 62%);
+}
+
 html {
   scrollbar-gutter: stable;
 }
