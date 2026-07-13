@@ -44,12 +44,14 @@ prompt_injection_mode = "argv"    # see below
 | `flag-interactive` | just `-i`; prompt sent later | grok |
 | `stdin-after-start` | prompt pasted to stdin (bracketed-paste) 1.5 s after launch | opencode, pi |
 
-## The hook API
+## Real-time hooks
 
-At launch, xNAUT injects two env vars into the agent's process: `XNAUT_HOOK_URL` and `XNAUT_HOOK_TOKEN`. An agent hook script reports state by POSTing:
+**Claude Code: automatic since 1.9.3.** When you launch claude through the Agent Runner, xNAUT writes `Stop` and `Notification` hooks into the worktree's `.claude/settings.local.json` — merge-safe, idempotent, and in the *git-ignored* local settings file so your committed project config is never touched. The pill flips to `done` the instant Claude stops and shows `permission` when it asks for one, instead of waiting on the silence timeout. The hooks call a bundled script (`Resources/scripts/hooks/xnaut-hook.sh`) that is silent and non-blocking — it can never wedge the agent.
+
+**Any other agent: one curl.** At launch, xNAUT injects `XNAUT_HOOK_URL` and `XNAUT_HOOK_TOKEN` into the agent's environment. Report state from any hook or wrapper:
 
 ```bash
-curl -s "$XNAUT_HOOK_URL" \
+curl -s -m 2 "$XNAUT_HOOK_URL" \
   -H "X-Xnaut-Session: $XNAUT_HOOK_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"state": "done"}'
@@ -59,4 +61,4 @@ curl -s "$XNAUT_HOOK_URL" \
 - `state` is required and **lowercase** (`working`, `blocked`, `waiting`, `done`, `idle`, `permission`, `interrupted`). Optional fields: `prompt`, `tool_name`, `interrupted`.
 - The token is a per-session UUID — one per launched agent.
 
-Wire this into your agent's stop/notification hooks (e.g. Claude Code's `Stop` hook) and the pills update the instant the agent finishes, instead of after the silence timeout.
+Agents without hooks keep working via the output-silence fallback.

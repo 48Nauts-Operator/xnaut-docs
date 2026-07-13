@@ -55,4 +55,4 @@ Agents that prefer HTTP over file writes use `POST http://127.0.0.1:<port>/v1/no
 
 ## The xnaut-review skill
 
-xNAUT ships `skills/xnaut-review/SKILL.md` — drop it into Claude Code, Codex, or any skill-aware agent and it knows the whole protocol: call `review` first, comment only on non-obvious issues, keep `summary` a ≤60-char headline with the "why" in `rationale`, and fall back to writing `notes.json` directly if loopback HTTP is sandboxed.
+The repo carries `skills/xnaut-review/SKILL.md` (packaged-app bundling is being finalized) — drop it into Claude Code, Codex, or any skill-aware agent and it knows the whole protocol: call `review` first, comment only on non-obvious issues, keep `summary` a ≤60-char headline with the "why" in `rationale`, and fall back to writing `notes.json` directly if loopback HTTP is sandboxed.
