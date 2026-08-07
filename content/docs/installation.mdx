@@ -33,7 +33,36 @@ xNAUT checks GitHub Releases on startup and shows a banner when a new version is
 
 ## Build from source
 
-Requirements: Rust 1.70+, and on macOS `xcode-select --install`.
+Four steps, in order. Skipping the third is the usual reason `cargo tauri dev` fails with `no such subcommand: tauri`.
+
+### 1. Rust
+
+If you've never installed Rust, use rustup — not Homebrew, which lags and doesn't manage toolchains:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+. "$HOME/.cargo/env"          # this shell only; new shells pick it up automatically
+```
+
+**Rust 1.77.2 or newer** — that's Tauri 2's minimum, not ours. An older toolchain fails to compile with errors that don't mention the version. Check with `rustc --version`.
+
+### 2. Apple toolchain
+
+```bash
+xcode-select --install
+```
+
+Full Xcode works too. Verify with `xcode-select -p` — it should print a path, and `clang --version` should answer.
+
+### 3. Tauri CLI
+
+```bash
+cargo install tauri-cli --version "^2" --locked
+```
+
+This is a separate cargo subcommand and is **not** pulled in by the project's dependencies — nothing in `Cargo.toml` installs it for you. It compiles from source and takes a few minutes. Verify with `cargo tauri --version`.
+
+### 4. Build
 
 ```bash
 git clone https://github.com/48Nauts-Operator/xNaut.git
@@ -46,6 +75,21 @@ cargo tauri dev
 cargo tauri build
 open target/release/bundle/macos/xNAUT.app
 ```
+
+The first build compiles the full dependency tree and is slow; later builds are incremental.
+
+**Use `cargo tauri dev` for UI work.** The release binary embeds the frontend at build time, so if you edit HTML/CSS/JS and re-run the old binary you'll keep seeing the previous UI. `cargo tauri dev` reloads it live.
+
+### Verified toolchain
+
+This sequence was run start to finish on a clean macOS 26 account:
+
+| | |
+|---|---|
+| rustc | 1.97.1 |
+| cargo | 1.97.1 |
+| tauri-cli | 2.11.4 |
+| clang | Apple clang 21.0.0 |
 
 ## First launch
 
