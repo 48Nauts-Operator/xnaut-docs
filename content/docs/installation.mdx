@@ -12,7 +12,15 @@ brew install --cask xnaut
 
 On recent Homebrew you may hit `Refusing to load cask … from untrusted tap`. If so, run `brew trust 48nauts-operator/tap` once, then re-run the install. (Older Homebrew versions don't have `brew trust` and won't need it.)
 
-Upgrades: `brew upgrade --cask xnaut`.
+Upgrades: `brew upgrade --cask --greedy xnaut`. The `--greedy` is required — the cask declares `auto_updates true`, so a plain `brew upgrade` deliberately skips xNAUT and reports nothing to do.
+
+### Already installed from the DMG?
+
+`brew upgrade` only manages what brew installed, so it reports `Cask 'xnaut' is not installed`. Quit xNAUT first — otherwise brew swaps the bundle while the old code is still running and the open window keeps reporting the old version — then take it over:
+
+```bash
+brew install --cask --force 48nauts-operator/tap/xnaut
+```
 
 ## Direct download
 
@@ -21,7 +29,7 @@ Grab the latest release from [GitHub Releases](https://github.com/48Nauts-Operat
 - **macOS** — `xNAUT-<version>-macos-aarch64.dmg` (Apple Silicon) or `-x64.dmg` (Intel). Open the DMG and drag xNAUT to Applications.
 - **Windows x64** — `.msi` or `-setup.exe`. Windows builds ship with every release but are younger than the macOS ones — the core terminal works; some workspace features are macOS-first.
 
-xNAUT checks GitHub Releases on startup and offers one-click updates, so you only install manually once.
+xNAUT checks GitHub Releases on startup and shows a banner when a new version is out. As of v1.11.1 the one-click install from that banner does not complete — see [Troubleshooting](/docs/troubleshooting#update-problems). Upgrade with Homebrew or a fresh DMG in the meantime.
 
 ## Build from source
 

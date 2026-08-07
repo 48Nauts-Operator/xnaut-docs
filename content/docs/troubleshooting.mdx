@@ -25,7 +25,19 @@ The webview blocks cross-origin requests, so xNAUT routes local-provider HTTP (m
 
 ## Update problems
 
-The auto-updater checks GitHub Releases on startup. If the banner never appears, your network may block `api.github.com`; grab the latest DMG/installer manually from [Releases](https://github.com/48Nauts-Operator/xNaut/releases).
+**The in-app update sticks on "Downloading…" (known, as of v1.11.1).** The banner appears correctly, but clicking *Update Now* never installs; after 60 seconds it falls back to *Failed — download manually*. The version check works and the download never starts — release asset counts show the update manifest being fetched repeatedly while the `.app.tar.gz` payload sits at zero, so no client has ever retrieved it. Not a permissions problem: the updater plugin's default set already grants the full check/download/install workflow. Root cause is still open.
+
+Until it's fixed, upgrade with `brew upgrade --cask --greedy xnaut` or grab the DMG from [Releases](https://github.com/48Nauts-Operator/xNaut/releases).
+
+If the banner **never appears**, your network may block `api.github.com`; install manually from the same page.
+
+## The version in the status bar looks wrong
+
+The status bar reports the version of the code *currently running*, not what's on disk. If the bundle was replaced while the app was open (a brew upgrade, or a DMG copied over it), the window keeps serving the old build until you quit and relaunch — and it will keep offering you an update you already have. Check what's actually installed:
+
+```bash
+defaults read /Applications/xNAUT.app/Contents/Info.plist CFBundleShortVersionString
+```
 
 ## Filing issues
 
