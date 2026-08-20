@@ -3,18 +3,24 @@ title: Proof of Work
 description: The Work Session Logger — Merkle-chained command records, QR verification, and client-ready reports.
 ---
 
-The Work Session Logger turns a terminal session into a **tamper-evident record of billable work**.
+The Work Session Logger turns a terminal session into a **hash-chained record of billable work**.
 
 ## How it works
 
 1. **Record** — toggle *Start Work Log* from the menu; you're asked for a **Client** and **Project**, and a pulsing indicator shows in the status bar. Every command is captured with timestamp, directory, and duration. An interrupted session resumes on next launch.
 2. **Chain** — each entry's hash is `SHA-256(timestamp | command | directory | prev_hash)`, chained from genesis; on stop, a binary SHA-256 **Merkle tree** over all entry hashes produces the session root. Editing any entry breaks verification.
 3. **Report** — export a professional **HTML report** (opens in your browser) or **copy as Markdown** for pasting into an invoice or email. The report groups time by tool — Claude Code, Codex, Aider, Docker, Terraform, kubectl, Helm, AWS/GCloud, Git, npm, Cargo, pip, AntBot, and more — with per-tool duration and counts.
-4. **Verify** — the summary carries a **QR code** encoding the session metadata and Merkle root; scanning it verifies the record wasn't modified.
+4. **Verify** — the summary carries a **QR code** encoding the session metadata and Merkle root; scanning it recomputes the root and shows whether the report still matches the record it came from.
 
 ## What it proves — and what it doesn't
 
-The chain proves **integrity**: these commands ran, at these times, for these durations, and nobody edited the record afterwards. It does not certify the *quality* of the work — it's a notary, not a reviewer.
+The chain proves **internal consistency**: change one entry and every hash after it stops matching, so an edited report does not survive a recomputation. Anyone you hand the report to can check that.
+
+It is not tamper-evidence against *you*. The chain is computed on your machine, from your file, with no outside signature over it. Whoever holds the log can rewrite an entry and recompute the whole chain, QR code included. That is a real limit, and we would rather state it than let a client assume otherwise.
+
+Tamper-evidence needs a signature from something the author cannot forge. That is what our execution-attestation work adds, with periodic checkpoints signed inside a Securosys HSM whose key the author never holds. It is not part of this feature. The Work Session Logger is a timesheet you cannot quietly edit; it is not a notarised one.
+
+It also does not certify the *quality* of the work.
 
 ## Who it's for
 
