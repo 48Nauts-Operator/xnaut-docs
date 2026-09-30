@@ -28,7 +28,7 @@ The worker needs access to the repository's **SSH endpoint and HTTP(S)/Git LFS e
 
 Desktop Git access and worker Git access use separate credentials. If this checkout uses an SSH alias (such as `forgejo:team/repo.git`), the updated preview preserves that alias for desktop uploads and downloads when it resolves to the configured repository. It does not copy your desktop private key to a worker or use another repository mirror. You can also set the intended SSH alias clone URL explicitly in project settings.
 
-xNaut prepares tools and a repository-specific worker deploy key, then checks Git read/write and Git LFS authorization. Network access and repository permissions are separate: a Tailscale key does not grant Git permissions. Results use a task branch and review flow; they are not automatically merged into the default branch.
+xNaut prepares tools and a repository-specific worker deploy key, then checks Git read/write and Git LFS authorization. Network access and repository permissions are separate: a Tailscale key does not grant Git permissions. Results use a task branch and pull request. Automatic review and merging are off until the project owner enables the permissions below.
 
 ## Create the worker tag first, if using tags
 
@@ -85,6 +85,33 @@ Name the registered project explicitly. Replace `YOUR-PROJECT-KEY` with its key 
 When retrying a blocked attempt, include its original task key so the harness reuses the same task identity. Repository tools resolve registered project keys/names in the updated Harness Test preview; older previews require the exact absolute local source path.
 
 Verify that setup completes, the task actually runs, and its report reaches the task branch and pull request. A launch receipt alone is not proof of delivery. See [Agent Harness](/docs/agents/harness) for execution and review stages.
+
+## Automatic testing, review and project merge permission
+
+The updated **Harness Test preview** adds **Project settings → Testing, review and merge**. Ralph and Otto are baseline agents shipped alongside NautBot; no new agent is required. Ralph now independently tests and reviews the exact task commit. His validator role remains compatible with existing release checks. Customized profiles and deliberately deleted agents are preserved.
+
+1. Save the project's repository connection first.
+2. Enable **Automatically ask Ralph to test and review task PRs** to request an isolated review worker after successful repository delivery. Normal worker access, agent concurrency and spend limits still apply.
+3. Optionally check **I authorize Otto to merge passing task PRs for this project** and select **Save review permissions**. This is a separate owner agreement, off by default. Agents cannot grant it through their task tools.
+4. For a PR published before this feature, select **Review** in the project's transfer list. Enabling review does not silently launch workers for legacy receipts.
+
+The desktop app must remain running to reconcile results. Ralph's evidence is published to a separate task branch and summarized on the original PR; it does not recursively open more review PRs. If Ralph authored the task, the existing Reviewer agent provides the independent review. An unavailable reviewer or blocked launch stays visible rather than attaching to another active session.
+
+Otto's merge stage is a deterministic desktop action under the saved project permission; it does not start an additional conversational worker. It requires all of these gates:
+
+- A successful independent review of the exact PR and target commits, with successful tests, committed regular-file logs, no source edits by the reviewer, and no unresolved findings or coverage gaps.
+- The task branch includes the current target commit. If either commit changes, update the task branch as needed and request a fresh review.
+- The PR is open, ready, mergeable and belongs to the configured repository. Reported CI statuses and GitHub check runs must be complete and successful. Native forge rules and required approvals still apply.
+- Branch protection prevents merging an outdated branch **and applies to administrators**. On GitHub this means required status checks with strict/up-to-date enforcement and administrator enforcement. On Forgejo it means blocking outdated branches and applying protection to administrators. xNaut does not change these repository policies for you. If it cannot verify them, merge manually after review.
+- The existing deterministic change-risk score is below the human-review threshold.
+- Jev's merge guard passes through the configured NautGate connection. This guard is independent of the tool-selection setting. It evaluates test coverage, scope alignment and serious unresolved risk, receiving the task report, changed file statistics, review and bounded test-log excerpts. It does not receive the entire repository or forge credentials.
+- The project permission remains enabled and unchanged immediately before the merge request.
+
+Jev supplies an additional judgment, not permission or a guarantee of correctness. The preview's initial thresholds require coverage and scope probabilities of at least 0.90 and serious-risk probability at most 0.10; they still need evaluation against real project outcomes. Missing, malformed, uncertain, failed or timed-out results stop automatic merging. The returned model, probabilities, thresholds and usage are saved in **Decisions** history and summarized on the task PR.
+
+The merge request checks the exact head commit, never forces a merge, never deletes the branch, and never queues an unchecked future merge. Interrupted or ambiguous merge results require inspection before another attempt. A successful merge does not publish a release or bypass existing release approval.
+
+Switching off the project agreement prevents subsequent merge requests; it cannot cancel a request already submitted to the forge. Changing the repository revokes the agreement, including when you later switch back. Review failures stay visible in the transfer list. **Retry review** only starts another attempt when the previous run is known to have stopped, and allows at most three attempts. An uncertain launch or merge outcome needs owner inspection instead of another worker.
 
 ## Troubleshooting
 
