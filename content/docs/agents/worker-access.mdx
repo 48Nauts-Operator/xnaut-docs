@@ -30,6 +30,17 @@ Desktop Git access and worker Git access use separate credentials. If this check
 
 xNaut prepares tools and a repository-specific worker deploy key, then checks Git read/write and Git LFS authorization. Network access and repository permissions are separate: a Tailscale key does not grant Git permissions. Results use a task branch and review flow; they are not automatically merged into the default branch.
 
+## Create the worker tag first, if using tags
+
+Typing a tag into xNaut does **not** create it in Tailscale. Before using `tag:xnaut-worker`:
+
+1. Open [Tailscale Access controls → Definitions → Tags](https://console.tailscale.com/admin/acls/visual/tags).
+2. Select **Create tag**. In Tailscale's **Tag name** field, enter `xnaut-worker`.
+3. Choose the account or group authorized to assign it under **Tag owner**, then select **Save tag**.
+4. Confirm the saved list shows `tag:xnaut-worker`. Check that your network policy permits workers with that tag to reach the repository's SSH and Git LFS endpoints.
+
+Then generate the enrollment key below using an account authorized for that tag. Tailscale's form supplies the prefix when it saves the tag; xNaut's **Worker network tags** field requires the full value `tag:xnaut-worker`.
+
 ## Create a Tailscale enrollment key
 
 An enrollment key is a Tailscale **auth key**. It lets workers join your network without an interactive browser login. Create it in the same tailnet as your repository server, using an account allowed to generate keys.
