@@ -57,6 +57,12 @@ When the repository is already reachable, xNaut skips enrollment. Otherwise, wit
 
 The current preview uses the saved auth key and does not rotate it automatically. Replace it in Worker access before expiry so future workers can enroll. Already enrolled devices have a separate device-key lifecycle.
 
+## Tasks and shared environments
+
+The current exe.dev driver reuses one persistent VM. Each task gets a separate repository checkout and tmux session on that VM; starting a new task does not require stopping another task. The updated Harness Test preview counts this shared VM once for the environment ceiling, while concurrent-agent and daily-launch limits still apply separately. Earlier previews incorrectly counted agent/project records as separate exe.dev environments.
+
+Reusing an environment does not mean sending a new task into another agent's active terminal. Keep active and waiting sessions intact. Retrying the same task key returns its existing launch receipt if a launch was already recorded; if setup failed before launch, there is no worker process to resume yet.
+
 ## Try a new task
 
 Name the registered project explicitly. Replace `YOUR-PROJECT-KEY` with its key from project settings:
