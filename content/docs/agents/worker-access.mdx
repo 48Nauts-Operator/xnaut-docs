@@ -26,6 +26,8 @@ The worker needs access to the repository's **SSH endpoint and HTTP(S)/Git LFS e
 2. Set the destination repository in the project's settings. Use the repository for source and task results, not a local folder path.
 3. Leave **Worker access** empty if the worker already reaches that repository.
 
+Desktop Git access and worker Git access use separate credentials. If this checkout uses an SSH alias (such as `forgejo:team/repo.git`), the updated preview preserves that alias for desktop uploads and downloads when it resolves to the configured repository. It does not copy your desktop private key to a worker or use another repository mirror. You can also set the intended SSH alias clone URL explicitly in project settings.
+
 xNaut prepares tools and a repository-specific worker deploy key, then checks Git read/write and Git LFS authorization. Network access and repository permissions are separate: a Tailscale key does not grant Git permissions. Results use a task branch and review flow; they are not automatically merged into the default branch.
 
 ## Create a Tailscale enrollment key
@@ -46,7 +48,7 @@ An enrollment key is a Tailscale **auth key**. It lets workers join your network
 | Tags | Prefer a dedicated worker tag whose access rules allow the repository endpoints |
 
 4. Select **Generate key** and copy it directly into xNaut's **Tailscale enrollment key** field.
-5. If using tags, enter the authorized tags in **Worker network tags**, for example `tag:xnaut-worker`. Tags and their network rules must already be configured in Tailscale.
+5. If the auth key already assigns the required tags, leave **Worker network tags** empty. Otherwise enter only tags that already exist and are authorized for that key, for example `tag:workers`. Include the `tag:` prefix; separate multiple tags with commas. An example tag is not created automatically. See [Tailscale tag permissions](https://tailscale.com/docs/features/tags).
 6. Select **Save Tasks Mode Settings**.
 
 See [Tailscale's auth-key documentation](https://tailscale.com/docs/features/access-control/auth-keys) for key settings and lifecycle. Never put the key in chat, task instructions or your repository.
@@ -78,6 +80,8 @@ Verify that setup completes, the task actually runs, and its report reaches the 
 | Symptom | Check |
 | --- | --- |
 | Repository not reachable / `network_setup_required` | Confirm the URL, DNS, SSH port and worker network route. Configure optional Tailscale enrollment only if that is how your server is reached. |
+| Git works in a terminal but launch fails at `ls-remote` | Use the updated Harness Test preview, which preserves matching desktop SSH aliases. Confirm the project repository and local SSH configuration target the same host, port, account and repository. |
+| Invalid or rejected worker tags | Include the `tag:` prefix and check the key’s allowed tags and tailnet policy. If the key already assigns tags, leave Worker network tags empty. xNaut does not add tag permissions or change your tailnet policy. |
 | Enrollment fails | Check key expiry, revocation, tailnet and allowed tags. Save a replacement key if necessary. |
 | Device approval required | Use a Pre-approved key for future workers; approve an already pending device in Tailscale. |
 | Enrolled but repository unreachable | Check network access rules, DNS, firewall and server ports. The harness does not forcibly re-enroll an already running Tailscale connection. |
