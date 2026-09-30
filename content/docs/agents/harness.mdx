@@ -20,6 +20,10 @@ This guide distinguishes the existing execution architecture from changes that a
 
 An older release may still ask you to choose a repository through **Open worktree & build**. The preview removes that extra step when the repository can be resolved from the user's request and the project registry. Publishing these docs does not install that preview or upgrade your application.
 
+## Worker repository access
+
+For automatic tool setup, repository authentication and optional private-network enrollment in the Harness Test preview, follow [Worker access setup](/docs/agents/worker-access). The guide covers GitHub, internet-accessible Forgejo, existing VPNs and Tailscale. Tailscale is not required when the worker can already reach the repository.
+
 ## The components
 
 | Component | Responsibility |

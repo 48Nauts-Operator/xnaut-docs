@@ -1,0 +1,76 @@
+---
+title: Worker access setup
+description: Connect task workers to GitHub or Forgejo, with optional Tailscale enrollment for private repositories.
+---
+
+Every task worker needs to reach the project's repository to fetch source and publish results. **Tailscale is optional.** A private repository on GitHub can be reachable over the internet while still requiring authentication; “private repository” does not necessarily mean “private network.”
+
+## Availability
+
+Automatic worker provisioning and **Settings → Tasks Mode → Worker access** are part of the **Harness Test preview**, not the public 1.28.2 release. The preview covers repository tasks launched through exe.dev and GitVM. Publishing this guide does not update your installed app.
+
+## Choose your connection
+
+| Where the repository is reachable | What to configure |
+| --- | --- |
+| GitHub or an internet-accessible Forgejo server | Set the project's repository and forge connection. Leave the Tailscale fields empty. |
+| A private network the worker already reaches, including an existing VPN | Leave the Tailscale fields empty. Confirm the worker has the required DNS, routes and access rules. |
+| A private Tailscale network that new workers have not joined | Configure a reusable enrollment key once, as described below. |
+| A private network without Tailscale or another worker connection | Provide network access through your worker image/infrastructure, run workers inside that network, or use a reachable repository endpoint. An enrollment key is not required unless you choose Tailscale. |
+
+The worker needs access to the repository's **SSH endpoint and HTTP(S)/Git LFS endpoints**. Access from your desktop alone does not establish access from a remote worker. xNaut checks connectivity before launching the task; it does not automatically configure other VPN products or publish a private server to the internet.
+
+## Set up the project repository
+
+1. Configure GitHub or Forgejo under **Settings → Tasks Mode → Forge Hosts**. The forge connection needs permission to manage repository deploy keys and create pull requests.
+2. Set the destination repository in the project's settings. Use the repository for source and task results, not a local folder path.
+3. Leave **Worker access** empty if the worker already reaches that repository.
+
+xNaut prepares tools and a repository-specific worker deploy key, then checks Git read/write and Git LFS authorization. Network access and repository permissions are separate: a Tailscale key does not grant Git permissions. Results use a task branch and review flow; they are not automatically merged into the default branch.
+
+## Create a Tailscale enrollment key
+
+An enrollment key is a Tailscale **auth key**. It lets workers join your network without an interactive browser login. Create it in the same tailnet as your repository server, using an account allowed to generate keys.
+
+1. Open [Tailscale Settings → Keys](https://login.tailscale.com/admin/settings/keys).
+2. Select **Generate auth key**.
+3. Use these settings:
+
+| Setting | Value |
+| --- | --- |
+| Description | `xNAUT workers` |
+| Reusable | **On**, so multiple workers can enroll |
+| Pre-approved | **On** if device approval is enabled; this is what xNaut means by “preauthorized” |
+| Expiration | Choose 1–90 days; replace the key before it expires |
+| Ephemeral | **On** for disposable task workers; inactive devices are automatically removed |
+| Tags | Prefer a dedicated worker tag whose access rules allow the repository endpoints |
+
+4. Select **Generate key** and copy it directly into xNaut's **Tailscale enrollment key** field.
+5. If using tags, enter the authorized tags in **Worker network tags**, for example `tag:xnaut-worker`. Tags and their network rules must already be configured in Tailscale.
+6. Select **Save Tasks Mode Settings**.
+
+See [Tailscale's auth-key documentation](https://tailscale.com/docs/features/access-control/auth-keys) for key settings and lifecycle. Never put the key in chat, task instructions or your repository.
+
+## What happens for new workers
+
+When the repository is already reachable, xNaut skips enrollment. Otherwise, with a configured key, it installs Tailscale if needed and attempts enrollment. The key travels over the worker's SSH connection and is removed from its temporary worker file after the attempt. Configure this once for the fleet; do not create a separate key or perform a browser login for each task.
+
+The current preview uses the saved auth key and does not rotate it automatically. Replace it in Worker access before expiry so future workers can enroll. Already enrolled devices have a separate device-key lifecycle.
+
+## Try a new task
+
+Start a new task for the configured project, for example:
+
+> Run a harness smoke test: create a short task report without changing application source, publish the result, and report the task branch.
+
+Verify that setup completes, the task actually runs, and its report reaches the task branch and pull request. A launch receipt alone is not proof of delivery. See [Agent Harness](/docs/agents/harness) for execution and review stages.
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| Repository not reachable / `network_setup_required` | Confirm the URL, DNS, SSH port and worker network route. Configure optional Tailscale enrollment only if that is how your server is reached. |
+| Enrollment fails | Check key expiry, revocation, tailnet and allowed tags. Save a replacement key if necessary. |
+| Device approval required | Use a Pre-approved key for future workers; approve an already pending device in Tailscale. |
+| Enrolled but repository unreachable | Check network access rules, DNS, firewall and server ports. The harness does not forcibly re-enroll an already running Tailscale connection. |
+| Git or LFS authorization fails | Check the project's forge connection, deploy-key permissions and LFS support. Network enrollment does not fix repository authorization. |
