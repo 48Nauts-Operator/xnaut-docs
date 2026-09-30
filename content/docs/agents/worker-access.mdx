@@ -84,6 +84,8 @@ Name the registered project explicitly. Replace `YOUR-PROJECT-KEY` with its key 
 
 When retrying a blocked attempt, include its original task key so the harness reuses the same task identity. Repository tools resolve registered project keys/names in the updated Harness Test preview; older previews require the exact absolute local source path.
 
+The starting revision must already belong to a published source branch. Task PRs use that branch as their target, so a report-only task from a feature checkout does not silently include that feature's application changes against `main`. For a detached checkout, the preview can resolve a unique exact published branch; otherwise select the intended source branch in the project's local folder. Unpublished starting commits and ambiguous detached tips stop before launch with setup guidance.
+
 Verify that setup completes, the task actually runs, and its report reaches the task branch and pull request. A launch receipt alone is not proof of delivery. See [Agent Harness](/docs/agents/harness) for execution and review stages.
 
 ## Automatic testing, review and project merge permission
@@ -94,6 +96,8 @@ The updated **Harness Test preview** adds **Project settings → Testing, review
 2. Enable **Automatically ask Ralph to test and review task PRs** to request an isolated review worker after successful repository delivery. Normal worker access, agent concurrency and spend limits still apply.
 3. Optionally check **I authorize Otto to merge passing task PRs for this project** and select **Save review permissions**. This is a separate owner agreement, off by default. Agents cannot grant it through their task tools.
 4. For a PR published before this feature, select **Review** in the project's transfer list. Enabling review does not silently launch workers for legacy receipts.
+
+For a task PR already known to this desktop, you can also ask an agent: **“Review XNAUT PR #105”**, substituting your project and PR number. The updated preview resolves the saved task receipt to its registered project and local folder, then queues the existing PR instead of creating another task. A full PR URL disambiguates duplicate numbers. A queued review is not proof that a worker started. Project permission and worker admission still apply. Saved execution receipts are local to the desktop; a fresh machine needs the original receipt/context before this shortcut can resolve that task.
 
 The desktop app must remain running to reconcile results. Ralph's evidence is published to a separate task branch and summarized on the original PR; it does not recursively open more review PRs. If Ralph authored the task, the existing Reviewer agent provides the independent review. An unavailable reviewer or blocked launch stays visible rather than attaching to another active session.
 
