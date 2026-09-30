@@ -119,6 +119,71 @@ Worktree ownership and launch deduplication solve different problems. Writer lea
 
 Do not remove a worktree solely because its terminal is not visible. Check its Git changes, ownership and run state first. See the [Worktree Manager](/docs/agents/worktrees) for the manual lifecycle.
 
+## Agent Mesh, tags and registries
+
+**The intended ownership is xNaut-native.** Agent identity, local messaging and execution must work without an Engram service. Engram is an optional integration for memory or cross-machine communication, not a prerequisite for agents on the same xNaut instance to cooperate.
+
+The harness executes work. The Mesh connects participants and carries status or bounded information requests. The Registry answers who a participant is and where it can be reached. These are related responsibilities, not interchangeable names for one service.
+
+There is also a UI naming overlap: xNaut's current **Mesh tab** is the human inbox for questions, approvals and notifications; its backend is called `inbox`. That screen alone is not the full agent-to-agent network.
+
+### Current implementation versus intended ownership
+
+Several relevant components exist, but the full xNaut-native messaging and shared Registry design is not established as shipped functionality by this guide:
+
+| Component | Current position |
+| --- | --- |
+| xNaut runtime registry (`agents.toml`) | Existing CLI definitions and launch configuration |
+| xNaut profile store | Existing handles, roles, capabilities and execution preferences |
+| xNaut run registry | Existing execution identities and lifecycle evidence |
+| xNaut human Mesh inbox | Existing questions, approvals and notifications |
+| xNaut-native one-shot agent messaging and knowledge lookup | Planned work tracked by XNAUT-102 and XNAUT-103 |
+| Multi-instance Registry / realm | Planned under XNAUT-369, including join/discovery (371) and fleet routing (374) |
+| Engram Tag Registry and Mesh | Existing source implementation and migration/reference material; not a required xNaut dependency |
+
+The Engram-OSS code contains tag tables, resolver routes, a Registry dashboard and Mesh presence/tag-message routes. That explains where parts of the design originated. It does **not** mean that running Engram is the intended way to provide xNaut's core communication, or that those components have already been ported into xNaut.
+
+### What tags identify
+
+A profile handle such as `@reviewer` identifies an agent independently of its selected model or CLI. A stable Mesh tag addresses that logical participant. A **presence** identifies one connected session and may change on reconnect. A **run ID** identifies one execution. A worker changing machine or session should not require the user to invent a new agent identity.
+
+Roles and capabilities describe what a participant can do; they are distinct from its address. A tag is not permission to execute commands. Routing must preserve the caller, project scope and applicable execution policy.
+
+The inspected launcher currently passes `ENGRAM_NICKNAME`, `ENGRAM_ROLE` and `ENGRAM_CAPABILITIES`. The Engram Mesh MCP client additionally expects `ENGRAM_ANNOUNCE_TAGS` for explicit tag claims; the xNaut launch helper does not set that field itself. These existing compatibility variables are not evidence of a finished native registration lifecycle.
+
+### Native messaging: bounded exchanges
+
+The existing xNaut design calls for three message kinds:
+
+| Kind | Intended protocol behavior |
+| --- | --- |
+| `status` | Fire-and-forget; no reply |
+| `request` | At most one response, with a timeout and request budget |
+| `response` | Data returned to the requester, with no reply channel |
+
+The broker should enforce these limits, not rely on a prompt asking agents to stop talking. Correlation IDs close after the first response; timeouts return an unknown outcome rather than pretending work is progressing.
+
+Requests should look for an existing answer in xNaut's local knowledge first. Only a miss should ask another agent, and the answer should be written back for reuse. This is planned behavior, not a claim that every chat turn already uses that broker.
+
+XNAUT-102 and XNAUT-103 explicitly choose the existing xNaut hook/MCP server as the transport boundary. The plan is to add the messaging and knowledge operations there, reusing its local endpoint and authentication rather than introducing a required external broker. An optional Engram bridge may carry traffic across machines; local operation must not depend on it.
+
+### How this connects to a personal Naut
+
+The target flow is:
+
+```text
+Desktop or mobile conversation
+  -> stable Naut identity and authorized project scope
+  -> xNaut-local tools, knowledge and bounded agent messaging
+  -> xNaut execution harness
+  -> local or configured remote worker
+  -> correlated results, approvals and execution evidence
+```
+
+The proposed multi-instance Registry extends that with instance membership, people, repositories, capabilities and routing. It is separate from the already-existing local runtime and run registries. A usable single-instance xNaut should not depend on a team Registry being available.
+
+Registration does not prove a live connection; delivery does not prove a model was woken; a wake does not prove completion. The native port must preserve those distinctions, including reconnect handling, authorized handoff and receipts tied to actual runs.
+
 ## Conversation and task continuity
 
 Conversation history, a runtime's own conversation/session ID, the Git workspace, and execution receipts are different records. Each answers a different question: what was requested, which process handled it, where the files are, and what execution was observed.
