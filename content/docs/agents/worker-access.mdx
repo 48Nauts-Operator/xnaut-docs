@@ -59,9 +59,11 @@ The current preview uses the saved auth key and does not rotate it automatically
 
 ## Try a new task
 
-Start a new task for the configured project, for example:
+Name the registered project explicitly. Replace `YOUR-PROJECT-KEY` with its key from project settings:
 
-> Run a harness smoke test: create a short task report without changing application source, publish the result, and report the task branch.
+> For registered project YOUR-PROJECT-KEY, run a harness smoke test: create a short task report without changing application source, publish the result, and report the task branch.
+
+When retrying a blocked attempt, include its original task key so the harness reuses the same task identity. Repository tools resolve registered project keys/names in the updated Harness Test preview; older previews require the exact absolute local source path.
 
 Verify that setup completes, the task actually runs, and its report reaches the task branch and pull request. A launch receipt alone is not proof of delivery. See [Agent Harness](/docs/agents/harness) for execution and review stages.
 
