@@ -1,0 +1,152 @@
+---
+title: Agent Harness
+description: How xNaut connects an agent identity to tools, isolated worktrees, coding runtimes, execution receipts, and review.
+---
+
+An **agent harness** is the software around a model that lets it do useful work: supply context, expose tools, prepare a workspace, start a runtime, track execution, and collect evidence. In xNaut these responsibilities span several components; the harness is not a separate model or a single process.
+
+For example, “review this repository” can be handled with read-only tools. “Run its tests and fix the failure” needs an executable runtime and an isolated workspace. Opening a terminal tab alone does neither.
+
+## Availability
+
+This guide distinguishes the existing execution architecture from changes that are still in preview.
+
+| Capability | Status |
+| --- | --- |
+| Agent profiles, runtime registry, manual worktree creation and runtime launching | Existing functionality; see the linked feature guides |
+| Orchestrated ticket runs and configured local or remote execution | Existing execution paths; availability depends on the installed build and configuration |
+| Chat tools named `create_worktree` and `start_repository_task`, registered-project resolution, and the new chat launch receipt | **Execution Preview**, implementation checkpoint `04a7f2d`; not part of the public 1.28.2 release |
+| A unified personal Naut experience across desktop and mobile | Possible extension; not a feature promised by this guide |
+
+An older release may still ask you to choose a repository through **Open worktree & build**. The preview removes that extra step when the repository can be resolved from the user's request and the project registry. Publishing these docs does not install that preview or upgrade your application.
+
+## The components
+
+| Component | Responsibility |
+| --- | --- |
+| **Agent identity** | Name, role, instructions, assigned capabilities, runtime and execution preferences |
+| **Chat model** | Interpret the request, ask for genuinely missing information, and choose available tools |
+| **Tool layer** | Execute native xNaut actions or connected MCP calls; return results and errors to the model |
+| **Workspace manager** | Prepare an isolated Git worktree and coordinate ownership |
+| **Coding runtime** | Run the configured CLI, such as Codex or Claude Code, with the task and agent context |
+| **Execution environment** | Host the runtime locally, on configured exe.dev compute, or in a configured GitVM sandbox |
+| **Run tracking** | Record launch identity, session, status, output and lifecycle information |
+| **Verification and review** | Evaluate changes and evidence before accepting the result |
+
+The chat model and coding runtime are separate choices. Changing the chat provider does not itself install a CLI, authenticate that CLI, or configure a remote machine. A model's ability to describe a tool also does not mean the current session has that tool connected.
+
+## From request to work
+
+### 1. Resolve the task and repository
+
+The agent starts with the conversation, its profile and available tool schemas. For simple questions it can answer without starting a coding process.
+
+In the Execution Preview, a project name or key supplied in a **user message** can resolve through the Project Management registry to its local source repository. The source must be an existing Git root. A user-supplied absolute Git root also works. Ambiguous project names do not silently select a repository, and a path invented in assistant text is not an access grant.
+
+Use the source repository, not the Git control repository that stores tickets. They have different purposes; see [Project Management](/docs/workspace/project-management).
+
+### 2. Choose the appropriate tool
+
+Reading documentation may need only `list_repository_files` and `read_repository_file`. An external service may be reached through an MCP connector. A request to run commands or change code needs an execution path.
+
+In the Execution Preview, every configured chat agent can call:
+
+| Tool | Result |
+| --- | --- |
+| `create_worktree` | Prepare that agent's isolated Git workspace; **no worker is started** |
+| `start_repository_task` | Prepare the workspace if necessary and call the identity-aware launcher with the task |
+
+These tools act as the current chat agent. The model does not supply an arbitrary agent identity. NautBot retains the orchestration role of dispatching tickets to **other** agents; a specialist does not need NautBot merely to create its own workspace and start an authorized task.
+
+### 3. Create an isolated workspace
+
+The preview derives a stable workspace name from the agent identity and task key. Two agents given the same task key receive separate destinations. Retrying the same task with the same identity reuses its workspace.
+
+The workspace is created from the selected repository's committed state. Uncommitted changes in the owner's checkout are not automatically copied into it. If work depends on a particular branch or preserved checkpoint, select that baseline before launching.
+
+An existing destination must match the expected Git root, branch and common repository. An empty directory is not a substitute for a worktree. The preview refuses symlink containers or destinations rather than following them into another location.
+
+**A Git worktree is isolation of files and branch state, not an operating-system security sandbox.** Local tools still run under the host account and runtime permissions. Use an appropriate remote environment when the task calls for stronger separation.
+
+### 4. Launch through the existing runtime path
+
+The worktree tools reuse xNaut's identity-aware launcher. They do not introduce a second shell-execution system. Existing checks include workspace writer leases, runtime configuration, profile policy, launch admission and spend limits, and the read-only kill switch where applicable.
+
+The worker receives the requested task and context. When a ticket is supplied, its registered scope is included too. A **read-only security review** does not implicitly authorize remediation commits, deployment or release.
+
+The selected execution environment must be configured:
+
+| Environment | What must be available |
+| --- | --- |
+| Local | Repository, Git, configured CLI runtime and its authentication on the host |
+| exe.dev | A configured remote route and reachable machine with the required runtime/authentication |
+| GitVM | A configured sandbox provider and a usable runtime environment |
+
+The preview self-service tools use the agent's configured execution preference and the application's environment settings. Their tool arguments do not provide a separate model-selected environment override. There is no implied “try local instead” when the configured remote route fails.
+
+### 5. Record the launch and inspect progress
+
+A successful launch returns concrete identifiers such as the session ID, workspace and, where provided by the launcher, run ID and output location. The preview shows a launch receipt in chat with a **Terminal** button and retains that identity in follow-up context.
+
+Different evidence supports different statements:
+
+| Evidence | What it establishes |
+| --- | --- |
+| Terminal attached | A viewport opened onto a session |
+| Ticket marked in progress | A workflow record changed |
+| Worktree created | A workspace exists |
+| Worker launch receipt | The launcher launched a worker with the task |
+| Runtime output or tool result | Particular execution or inspection occurred |
+| Test/scanner report | The reported checks ran, with stated results and coverage |
+| Review/sign-off | The applicable review process accepted the evidence and result |
+
+A launch receipt is historical. It does not prove that the worker is still running, has passed a login prompt, completed a scan, or finished the task. Likewise, a quiet terminal or a successful process exit does not independently establish correct work.
+
+### 6. Verify and hand back the result
+
+A useful handback identifies the workspace/branch, findings or changes, tests actually run, results, and remaining gaps. Automated verification and review are separate from launch. [Agent Loops](/docs/agents/loops) can express workflow gates and bounded retries, but starting a chat task does not automatically create or execute a full delivery loop.
+
+For a security review, a missing scanner must be reported as a coverage gap. Read-only source inspection can still produce useful findings, but it must not be presented as a successful scan by that unavailable service. Final security sign-off needs evidence appropriate to the requested scope.
+
+## Retries, ownership and recovery
+
+Worktree ownership and launch deduplication solve different problems. Writer leases coordinate use of a workspace. The preview additionally stores an exclusive reservation for a launch keyed by agent, repository and task identity.
+
+- Repeating the same task key returns the existing launch receipt rather than starting another worker.
+- A pending reservation after a crash is treated as uncertain. Reconcile the run before retrying; do not erase the reservation merely to make another launch possible.
+- A deliberately new run needs a new task key. That decision should not be an automatic response to an unknown outcome.
+- A prepared worktree may remain after a launch failure. Preserve it while diagnosing the failure rather than treating all unused-looking worktrees as disposable.
+
+Do not remove a worktree solely because its terminal is not visible. Check its Git changes, ownership and run state first. See the [Worktree Manager](/docs/agents/worktrees) for the manual lifecycle.
+
+## Conversation and task continuity
+
+Conversation history, a runtime's own conversation/session ID, the Git workspace, and execution receipts are different records. Each answers a different question: what was requested, which process handled it, where the files are, and what execution was observed.
+
+The preview preserves its launch receipt in the chat thread and includes it in subsequent chat context. This helps the agent refer to the same task; it is not a promise of unlimited model memory. The host and runtime still need to be available, and resuming a conversation must not silently launch a duplicate task or assume an old receipt is current status.
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| A terminal opened but nothing happened | Look for a launch receipt and actual output. Attachment alone is view-only. |
+| The agent asks for a known repository | Check the installed build, the project's registered local source path, and name ambiguity. Self-service resolution is preview functionality. |
+| The registered path no longer exists | Correct the project source registration or restore the actual Git worktree. Do not create an empty directory at the old path. |
+| Runtime binary missing or CLI waiting for login | Check the runtime registry and authentication in the selected environment, not just on another machine. |
+| MCP server closes its connection | Check the connector command and startup failure separately from authentication. A closed connection does not identify its cause. |
+| An earlier task is returned instead of a new run | The same task key found an existing receipt. Inspect that run before intentionally starting a separate attempt. |
+| The agent claims completion without results | Require output, artifacts and relevant test/review evidence. A ticket update or launch receipt is insufficient. |
+
+## Example: a repository security review
+
+> Review EXAMPLE-11 in its own worktree. Keep the review read-only. Inspect dependencies and source, run available checks, and return findings with evidence and any coverage gaps.
+
+In the preview, the expected flow is: resolve the registered source → prepare the agent's worktree → launch its configured runtime with the ticket scope → show the receipt → inspect actual output → return the evidence-backed report. If setup fails, the reply should name the concrete failed step rather than claim the audit started.
+
+## Related guides
+
+- [Agent Runner: runtime registry and status hooks](/docs/agents)
+- [Agent Library: identity, capabilities and chat](/docs/agents/agent-library)
+- [Worktree Manager: manual workspace lifecycle](/docs/agents/worktrees)
+- [Agent Loops: orchestration and workflow gates](/docs/agents/loops)
+- [MCP server: external tool access](/docs/mcp-server)

@@ -1,4 +1,11 @@
 {
   "title": "Agents",
-  "pages": ["index", "agent-library", "worktrees", "diff-review", "loops"]
+  "pages": [
+    "index",
+    "harness",
+    "agent-library",
+    "worktrees",
+    "diff-review",
+    "loops"
+  ]
 }
